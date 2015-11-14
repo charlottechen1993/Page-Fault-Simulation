@@ -4,9 +4,9 @@ public class pageEntries {
 	private int dirty;
 	private int timeLastUsed;
 	
-	public pageEntries(int ref, int dirty, int timeLastUsed){
-		this.ref = ref;
-		this.dirty = dirty;
+	public pageEntries(int timeLastUsed){
+		this.ref = 1;
+		this.dirty = 0;
 		this.timeLastUsed = timeLastUsed;
 	}
 	public void setRefBit(int newRef){

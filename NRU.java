@@ -3,7 +3,7 @@ import java.util.HashMap;
 import java.util.Random;
 
 public class NRU {
-	boolean dirty_evict = false;
+	boolean disk_write = false;
 	
 	public NRU(){
 	}
@@ -44,7 +44,7 @@ public class NRU {
 			int removeIndex = cur_frames.indexOf(pageIndex);
 			cur_frames.remove(removeIndex);
 			cur_frames.add(removeIndex, page_index);
-			dirty_evict = true;
+			disk_write = true;
 		} 
 		else if (!priority3.isEmpty()){
 			int pageIndex = priority3.get(rd.nextInt(priority3.size()));
@@ -59,10 +59,10 @@ public class NRU {
 			int removeIndex = cur_frames.indexOf(pageIndex);
 			cur_frames.remove(removeIndex);
 			cur_frames.add(removeIndex, page_index);
-			dirty_evict = true;
+			disk_write = true;
 		} else {
 			System.out.println("ERROR: evict");
 		}
-		return dirty_evict;
+		return disk_write;
 	}
 }

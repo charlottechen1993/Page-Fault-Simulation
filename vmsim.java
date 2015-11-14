@@ -10,7 +10,7 @@ public class vmsim {
 	String algorithm = null;
 	int frame_num = 0;
 	int r = -1; 				//optional
-	int t = -1; 				//optional
+	int tau = -1; 				//optional
 	String input_file = null;
 	int page_faults = 0;
 	int writes_to_disk = 0;
@@ -39,27 +39,13 @@ public class vmsim {
 		String line;
 		int refreshCnt = 0;
 		while ((line = reader.readLine()) != null) {
-//			System.out.print("time: " + time_tick);
-//			if(time_tick > 20){
-//				System.exit(0);
-//			}
 			long page_index20 = 0;
 			int page_index = 0;
 			
 	        String[]token = line.split(" ");
 	        page_index20 = Long.parseLong(token[0], 16);
 	        page_index = (int)(page_index20/Math.pow(2, 12));
-	       
 	        
-	        //check if page is dirty
-	        int dirty = 0;
-    		if(token[1].equals("W"))
-    			dirty = 1;
-    		else if (token[1].equals("R"))
-    			dirty = 0;
-    		else
-    			System.out.println("ERROR: not w or r");
-    		
     		if(algorithm.equals("opt")){
         		if(optimal.get(page_index).peek()==time_tick)
         			optimal.get(page_index).pop();
@@ -70,16 +56,16 @@ public class vmsim {
 	        time_tick++;
 	        // === NO PAGE FAULT ===
 	        if(page_table.containsKey(page_index)){
-//	        	System.out.println(" incoming page: " + page_index + " -- no page fault");
-//	        	 System.out.println("no page fault ");
+//	        	System.out.println(page_index + " is already in frame. [HIT]");
 	        	// find entry value of the page and set reference bit to 1, and update dirty bit
 	        	page_table.get(page_index).setRefBit(1);
-	        	page_table.get(page_index).setDirtyBit(dirty);
+	        	if(token[1].equals("W")){
+	        		page_table.get(page_index).setDirtyBit(1);
+	        	}
+	        	
 	        } 
 	        // === PAGE FAULT ===
 	        else{    
-//	        	System.out.println("page_index " +  page_index);
-//	        	System.out.println(" incoming page: " + page_index + " -- page fault");
 	        	page_faults++;
 	        	// === PAGE FAULT if page frames NOT full ===
 	        	if(page_table.size()<tableCapacity){
@@ -88,36 +74,42 @@ public class vmsim {
 	        		//create a new page table value entry for the new page
 	        		//swap page into the page table
 	        		cur_frames.add(page_index);
-	        		pageEntries page_entry = new pageEntries(1, dirty, time_tick);
+	        		pageEntries page_entry = new pageEntries(time_tick);
 	        		page_table.put(page_index, page_entry);
+	        		if(token[1].equals("W")){
+	        			page_table.get(page_index).setDirtyBit(1);
+	        		}
 	        	}
 	        	//=== PAGE FAULT if page frames is full ===
 	        	else if (page_table.size()==tableCapacity){
-	        		boolean dirty_evict = false;
+	        		boolean disk_write = false;
 	        		
 	        		//EVICT
 	        		if(algorithm.equals("clock")){
-	        			Clock replacement = new Clock(hand);
-	        			dirty_evict = replacement.EvictPage(page_table, cur_frames, page_index, time_tick);
-	        			hand = replacement.returnHand();
+	        			Clock replacement_c = new Clock(hand);
+	        			disk_write = replacement_c.EvictPage(page_table, cur_frames, page_index);
+	        			hand = replacement_c.returnHand();
 	        		} else if(algorithm.equals("nru")){
-	        			NRU replacement = new NRU();
-	        			dirty_evict = replacement.EvictPage(page_table, cur_frames, page_index);
+	        			NRU replacement_n = new NRU();
+	        			disk_write = replacement_n.EvictPage(page_table, cur_frames, page_index);
 	        		} else if(algorithm.equals("work")){
-	        			Work replacement = new Work();
-	        			dirty_evict = replacement.EvictPage(page_table, cur_frames, hand, time_tick, page_index);
+	        			Work replacement_w = new Work(hand);
+	        			disk_write = replacement_w.EvictPage(page_table, cur_frames, time_tick, page_index, tau);
+	        			hand = replacement_w.returnHand();
 	        		} else if(algorithm.equals("opt")){
-	        			Opt replacement = new Opt();
-	        			dirty_evict = replacement.EvictPage(page_table, cur_frames, optimal, time_tick, page_index);
+	        			Opt replacement_o = new Opt();
+	        			disk_write = replacement_o.EvictPage(page_table, cur_frames, optimal, time_tick, page_index);
+	        		}
+	        		//if evicted page is dirty, write_to_disk++
+	        		if(disk_write == true){
+	        			writes_to_disk++;
 	        		}
 	        		//create a new page table value entry for the new page
 	        		//swap page into the page table
-	        		pageEntries page_entry = new pageEntries(1, dirty, time_tick);
+	        		pageEntries page_entry = new pageEntries(time_tick);
 	        		page_table.put(page_index, page_entry);
-	        		
-	        		//if evicted page is dirty, write_to_disk++
-	        		if(dirty_evict == true){
-	        			writes_to_disk++;
+	        		if(token[1].equals("W")){
+	        			page_table.get(page_index).setDirtyBit(1);
 	        		}
 	        	} else {
 	        		System.out.println("ERROR: Page entries exceeds page table capacity!");
@@ -128,11 +120,12 @@ public class vmsim {
 	        if((algorithm.equals("nru") || algorithm.equals("work")) && refreshCnt==r){
 	        	for(pageEntries reset : page_table.values()){
 	        		reset.setRefBit(0);
+	        		if(algorithm.equals("work")){
+	        			if(reset.getRefBit()==1)
+	        				reset.setTimeLastUsed(time_tick);;
+		        	}
 	        	}
 	        	refreshCnt=0;
-	        	if(algorithm.equals("work")){
-	        		//record cur time
-	        	}
 	        	time_refreshed++;
 	        }
 	    }
@@ -217,7 +210,7 @@ public class vmsim {
 			//if no, t remains with default value -1
 			if(arg.equals("-t")){
 				if(i<args.length){
-					t = Integer.parseInt(args[i++]);
+					tau = Integer.parseInt(args[i++]);
 				} 
 			}
 		}

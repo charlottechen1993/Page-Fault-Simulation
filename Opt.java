@@ -3,7 +3,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public class Opt {
-	boolean dirty_evict = false;
+	boolean disk_write = false;
 	
 	public Opt(){
 	}
@@ -19,15 +19,15 @@ public class Opt {
 				pageToEvict = cur_frames.get(i);
 				int dirty = page_table.get(pageToEvict).getDirtyBit();
 				if(dirty ==1)
-					dirty_evict=true;
+					disk_write=true;
 				else if (dirty == 0)
-					dirty_evict=false;
+					disk_write=false;
 				
 				page_table.remove(pageToEvict);
 				cur_frames.remove(i);
 				cur_frames.add(page_index);
 				
-				return dirty_evict;
+				return disk_write;
 			}
 			
 			int peek_location = optimal.get(cur_page).peekFirst();
@@ -43,15 +43,14 @@ public class Opt {
 		}
 		int dirty = page_table.get(pageToEvict).getDirtyBit();
 		if(dirty ==1)
-			dirty_evict=true;
+			disk_write=true;
 		else if (dirty == 0)
-			dirty_evict=false;
+			disk_write=false;
 		
 		page_table.remove(pageToEvict);
 		cur_frames.remove(Integer.valueOf(pageToEvict));
-		
 		cur_frames.add(page_index);
 		
-		return dirty_evict;
+		return disk_write;
 	}
 }
