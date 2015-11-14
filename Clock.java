@@ -2,24 +2,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Clock {
-	HashMap<Integer, pageEntries>page_table = new HashMap<Integer, pageEntries>();
-	ArrayList<Integer>ordering = new ArrayList<Integer>();
 	boolean dirty_evict = false;
 	
-	public Clock(HashMap<Integer, pageEntries>page_table, ArrayList<Integer>ordering){
-		this.page_table=page_table;
-		this.ordering=ordering;
+	public Clock(){
+		
 	}
-	public boolean EvictPage(HashMap<Integer, pageEntries>page_table, ArrayList<Integer>ordering, int hand, int page_index){
+	public boolean EvictPage(HashMap<Integer, pageEntries>page_table, ArrayList<Integer>cur_frames, int hand, int page_index){
 		boolean found = false;
 		
-		while(found!=true && hand<=ordering.size()){
+		while(found!=true && hand<=cur_frames.size()){
 			//if head reach the end of the valid pages w/o evicting, start from beginning again
-			if(hand==ordering.size()){
+			if(hand==cur_frames.size()){
 				hand=0;
 			}
 			//if r bit for current page is 0
-			int cur = ordering.get(hand);
+			int cur = cur_frames.get(hand);
 			if(page_table.get(cur).getRefBit()==0){
 				if(page_table.get(cur).getDirtyBit()==1){
 					dirty_evict = true;
@@ -28,8 +25,8 @@ public class Clock {
 				
 				//evict page from page table and remove page from ordered list of pages
 				page_table.remove(cur);
-				ordering.remove(hand);
-				ordering.add(hand, page_index);
+				cur_frames.remove(hand);
+				cur_frames.add(hand, page_index);
 				found = true;
 			} 
 			//if r bit for current page is 1 set r bit back to 0

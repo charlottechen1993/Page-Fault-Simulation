@@ -1,6 +1,7 @@
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map.Entry;
 
 public class vmsim {
@@ -18,15 +19,17 @@ public class vmsim {
 	int time_refreshed = 0;
 	int hand = 0;
 	HashMap<Integer, pageEntries>page_table = new HashMap<Integer, pageEntries>();
-	ArrayList<Integer>ordering = new ArrayList<Integer>();
-	HashMap<Integer, ArrayList<Integer>>optimal = new HashMap<Integer, ArrayList<Integer>>();
+	ArrayList<Integer>cur_frames = new ArrayList<Integer>();
+	HashMap<Integer, LinkedList<Integer>>optimal = new HashMap<Integer, LinkedList<Integer>>();
 	
 	public static void main(String [] args) throws IOException{
 		new vmsim(args);
 	}
 	public vmsim(String[]args) throws IOException{
 		parseCommandLineArgs(args);
-		buildOptimalMap();
+		
+		if(algorithm.equals("opt"))
+			buildOptimalMap();
 		
 		// read file specified in user input
 		File file = new File(input_file);
@@ -67,10 +70,10 @@ public class vmsim {
 	        	// === PAGE FAULT if page frames NOT full ===
 	        	if(page_table.size()<tableCapacity){
 	        		//System.out.println(token[0] + " page fault - no eviction");
-	        		//add page to the ordered list by arrival time
+	        		//add page to the arraylist containing all valid pages
 	        		//create a new page table value entry for the new page
 	        		//swap page into the page table
-	        		ordering.add(page_index);
+	        		cur_frames.add(page_index);
 	        		pageEntries page_entry = new pageEntries(1, dirty, time_tick);
 	        		page_table.put(page_index, page_entry);
 	        	}
@@ -80,19 +83,20 @@ public class vmsim {
 	        		
 	        		//EVICT
 	        		if(algorithm.equals("clock")){
-	        			Clock replacement = new Clock(page_table, ordering);
-	        			dirty_evict = replacement.EvictPage(page_table, ordering, hand, page_index);
+	        			Clock replacement = new Clock();
+	        			dirty_evict = replacement.EvictPage(page_table, cur_frames, hand, page_index);
 	        		} else if(algorithm.equals("nru")){
-	        			NRU replacement = new NRU(page_table, ordering);
-	        			dirty_evict = replacement.EvictPage(page_table, ordering, page_index);
+	        			NRU replacement = new NRU();
+	        			dirty_evict = replacement.EvictPage(page_table, cur_frames, page_index);
 	        		} else if(algorithm.equals("work")){
-	        			Work replacement = new Work(page_table, ordering);
-	        			dirty_evict = replacement.EvictPage(page_table, ordering, hand);
-	        		} 
-	        		//add page to the ordered list by arrival time
+	        			Work replacement = new Work();
+	        			dirty_evict = replacement.EvictPage(page_table, cur_frames, hand);
+	        		} else if(algorithm.equals("opt")){
+	        			Opt replacement = new Opt();
+	        			dirty_evict = replacement.EvictPage(page_table, cur_frames, optimal, time_tick, page_index);
+	        		}
 	        		//create a new page table value entry for the new page
 	        		//swap page into the page table
-//	        		ordering.add(page_index);
 	        		pageEntries page_entry = new pageEntries(1, dirty, time_tick);
 	        		page_table.put(page_index, page_entry);
 	        		
@@ -134,7 +138,7 @@ public class vmsim {
 	        
 	        //if page not in map yet
 	        if(!optimal.containsKey(page_index)){
-	        	ArrayList<Integer>page_locations = new ArrayList<Integer>();
+	        	LinkedList<Integer>page_locations = new LinkedList<Integer>();
 	        	page_locations.add(location);
 	        	optimal.put(page_index, page_locations);
 	        } 
