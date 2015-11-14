@@ -41,9 +41,6 @@ public class vmsim {
 			long page_index20 = 0;
 			int page_index = 0;
 			
-			total_mem_access++;
-	        time_tick++;
-	        
 	        String[]token = line.split(" ");
 	        page_index20 = Long.parseLong(token[0], 16);
 	        page_index = (int)(page_index20/Math.pow(2, 12));
@@ -57,6 +54,14 @@ public class vmsim {
     		else
     			System.out.println("ERROR: not w or r");
     		
+    		if(algorithm.equals("opt")){
+        		if(optimal.get(page_index).peek()==time_tick)
+        			optimal.get(page_index).pop();
+        		else
+        			System.out.println("ERROR: mismatch time and page index in optimal");
+    		}
+    		total_mem_access++;
+	        time_tick++;
 	        // === NO PAGE FAULT ===
 	        if(page_table.containsKey(page_index)){
 //	        	 System.out.println("no page fault ");
