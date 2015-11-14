@@ -46,6 +46,7 @@ public class vmsim {
 	        page_index20 = Long.parseLong(token[0], 16);
 	        page_index = (int)(page_index20/Math.pow(2, 12));
 	        
+//	        System.out.println(page_index + ": ");
     		if(algorithm.equals("opt")){
         		if(optimal.get(page_index).peek()==time_tick)
         			optimal.get(page_index).pop();
@@ -62,7 +63,6 @@ public class vmsim {
 	        	if(token[1].equals("W")){
 	        		page_table.get(page_index).setDirtyBit(1);
 	        	}
-	        	
 	        } 
 	        // === PAGE FAULT ===
 	        else{    
