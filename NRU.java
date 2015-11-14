@@ -6,17 +6,15 @@ public class NRU {
 	boolean dirty_evict = false;
 	
 	public NRU(){
-		
 	}
+	
 	public boolean EvictPage(HashMap<Integer, pageEntries>page_table, ArrayList<Integer>cur_frames, int page_index){
-		
 		ArrayList<Integer>priority1 = new ArrayList<Integer>();
 		ArrayList<Integer>priority2 = new ArrayList<Integer>();
 		ArrayList<Integer>priority3 = new ArrayList<Integer>();
 		ArrayList<Integer>priority4 = new ArrayList<Integer>();
 		
-		for(int i=0; i<cur_frames.size();i++){
-			int pageIndex = cur_frames.get(i);
+		for(int pageIndex : cur_frames){
 			if(page_table.get(pageIndex).getRefBit()==0 && page_table.get(pageIndex).getDirtyBit()==0){
 				priority1.add(pageIndex);
 			} else if (page_table.get(pageIndex).getRefBit()==0 && page_table.get(pageIndex).getDirtyBit()==1){
@@ -36,27 +34,31 @@ public class NRU {
 			//evict page from page table
 			page_table.remove(pageIndex);
 			//remove page from ordered list of pages
-			cur_frames.remove(Integer.valueOf(pageIndex));
-			cur_frames.add(page_index);
+			int removeIndex = cur_frames.indexOf(pageIndex);
+			cur_frames.remove(removeIndex);
+			cur_frames.add(removeIndex, page_index);
 		} 
 		else if (!priority2.isEmpty()){
 			int pageIndex = priority2.get(rd.nextInt(priority2.size()));
 			page_table.remove(pageIndex);
-			cur_frames.remove(Integer.valueOf(pageIndex));
-			cur_frames.add(page_index);
+			int removeIndex = cur_frames.indexOf(pageIndex);
+			cur_frames.remove(removeIndex);
+			cur_frames.add(removeIndex, page_index);
 			dirty_evict = true;
 		} 
 		else if (!priority3.isEmpty()){
 			int pageIndex = priority3.get(rd.nextInt(priority3.size()));
 			page_table.remove(pageIndex);
-			cur_frames.remove(Integer.valueOf(pageIndex));
-			cur_frames.add(page_index);
+			int removeIndex = cur_frames.indexOf(pageIndex);
+			cur_frames.remove(removeIndex);
+			cur_frames.add(removeIndex, page_index);
 		} 
 		else if (!priority4.isEmpty()){
 			int pageIndex = priority4.get(rd.nextInt(priority4.size()));
 			page_table.remove(pageIndex);
-			cur_frames.remove(Integer.valueOf(pageIndex));
-			cur_frames.add(page_index);
+			int removeIndex = cur_frames.indexOf(pageIndex);
+			cur_frames.remove(removeIndex);
+			cur_frames.add(removeIndex, page_index);
 			dirty_evict = true;
 		} else {
 			System.out.println("ERROR: evict");

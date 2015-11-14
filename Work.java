@@ -7,13 +7,12 @@ public class Work {
 	
 	public Work(){
 	}
-	public boolean EvictPage(HashMap<Integer, pageEntries>page_table, ArrayList<Integer>cur_frames, int hand){
+	public boolean EvictPage(HashMap<Integer, pageEntries>page_table, ArrayList<Integer>cur_frames, int hand, int time_tick, int page_index){
 		
 		
 		return dirty_evict;
 	}
 	public int returnHand(){
-		
 		return hand;
 	}
 }

@@ -22,8 +22,6 @@ public class Opt {
 					dirty_evict=true;
 				else if (dirty == 0)
 					dirty_evict=false;
-				else
-					System.out.println("ERROR");
 				
 				page_table.remove(pageToEvict);
 				cur_frames.remove(i);
@@ -48,8 +46,6 @@ public class Opt {
 			dirty_evict=true;
 		else if (dirty == 0)
 			dirty_evict=false;
-		else
-			System.out.println("ERROR");
 		
 		page_table.remove(pageToEvict);
 		cur_frames.remove(Integer.valueOf(pageToEvict));

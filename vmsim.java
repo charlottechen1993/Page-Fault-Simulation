@@ -22,6 +22,7 @@ public class vmsim {
 	ArrayList<Integer>cur_frames = new ArrayList<Integer>();
 	HashMap<Integer, LinkedList<Integer>>optimal = new HashMap<Integer, LinkedList<Integer>>();
 	
+	
 	public static void main(String [] args) throws IOException{
 		new vmsim(args);
 	}
@@ -38,6 +39,10 @@ public class vmsim {
 		String line;
 		int refreshCnt = 0;
 		while ((line = reader.readLine()) != null) {
+//			System.out.print("time: " + time_tick);
+//			if(time_tick > 20){
+//				System.exit(0);
+//			}
 			long page_index20 = 0;
 			int page_index = 0;
 			
@@ -45,6 +50,7 @@ public class vmsim {
 	        page_index20 = Long.parseLong(token[0], 16);
 	        page_index = (int)(page_index20/Math.pow(2, 12));
 	       
+	        
 	        //check if page is dirty
 	        int dirty = 0;
     		if(token[1].equals("W"))
@@ -64,6 +70,7 @@ public class vmsim {
 	        time_tick++;
 	        // === NO PAGE FAULT ===
 	        if(page_table.containsKey(page_index)){
+//	        	System.out.println(" incoming page: " + page_index + " -- no page fault");
 //	        	 System.out.println("no page fault ");
 	        	// find entry value of the page and set reference bit to 1, and update dirty bit
 	        	page_table.get(page_index).setRefBit(1);
@@ -71,6 +78,8 @@ public class vmsim {
 	        } 
 	        // === PAGE FAULT ===
 	        else{    
+//	        	System.out.println("page_index " +  page_index);
+//	        	System.out.println(" incoming page: " + page_index + " -- page fault");
 	        	page_faults++;
 	        	// === PAGE FAULT if page frames NOT full ===
 	        	if(page_table.size()<tableCapacity){
@@ -88,14 +97,15 @@ public class vmsim {
 	        		
 	        		//EVICT
 	        		if(algorithm.equals("clock")){
-	        			Clock replacement = new Clock();
-	        			dirty_evict = replacement.EvictPage(page_table, cur_frames, hand, page_index);
+	        			Clock replacement = new Clock(hand);
+	        			dirty_evict = replacement.EvictPage(page_table, cur_frames, page_index, time_tick);
+	        			hand = replacement.returnHand();
 	        		} else if(algorithm.equals("nru")){
 	        			NRU replacement = new NRU();
 	        			dirty_evict = replacement.EvictPage(page_table, cur_frames, page_index);
 	        		} else if(algorithm.equals("work")){
 	        			Work replacement = new Work();
-	        			dirty_evict = replacement.EvictPage(page_table, cur_frames, hand);
+	        			dirty_evict = replacement.EvictPage(page_table, cur_frames, hand, time_tick, page_index);
 	        		} else if(algorithm.equals("opt")){
 	        			Opt replacement = new Opt();
 	        			dirty_evict = replacement.EvictPage(page_table, cur_frames, optimal, time_tick, page_index);
