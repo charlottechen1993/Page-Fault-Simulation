@@ -28,41 +28,30 @@ public class NRU {
 			}
 		}
 		Random rd = new Random ();
+		
+		int pageIndex = 0;
 		if(!priority1.isEmpty()){
-			//get first element in the ordered list with eviction priority 1
-			int pageIndex = priority1.get(rd.nextInt(priority1.size()));
-			//evict page from page table
-			page_table.remove(pageIndex);
-			//remove page from ordered list of pages
-			int removeIndex = cur_frames.indexOf(pageIndex);
-			cur_frames.remove(removeIndex);
-			cur_frames.add(removeIndex, page_index);
+			pageIndex = priority1.get(rd.nextInt(priority1.size()));
 		} 
 		else if (!priority2.isEmpty()){
-			int pageIndex = priority2.get(rd.nextInt(priority2.size()));
-			page_table.remove(pageIndex);
-			int removeIndex = cur_frames.indexOf(pageIndex);
-			cur_frames.remove(removeIndex);
-			cur_frames.add(removeIndex, page_index);
+			pageIndex = priority2.get(rd.nextInt(priority2.size()));
 			disk_write = true;
 		} 
 		else if (!priority3.isEmpty()){
-			int pageIndex = priority3.get(rd.nextInt(priority3.size()));
-			page_table.remove(pageIndex);
-			int removeIndex = cur_frames.indexOf(pageIndex);
-			cur_frames.remove(removeIndex);
-			cur_frames.add(removeIndex, page_index);
+			pageIndex = priority3.get(rd.nextInt(priority3.size()));
 		} 
 		else if (!priority4.isEmpty()){
-			int pageIndex = priority4.get(rd.nextInt(priority4.size()));
-			page_table.remove(pageIndex);
-			int removeIndex = cur_frames.indexOf(pageIndex);
-			cur_frames.remove(removeIndex);
-			cur_frames.add(removeIndex, page_index);
+			pageIndex = priority4.get(rd.nextInt(priority4.size()));
 			disk_write = true;
 		} else {
 			System.out.println("ERROR: evict");
 		}
+		
+		page_table.remove(pageIndex);
+		int removeIndex = cur_frames.indexOf(pageIndex);
+		cur_frames.remove(removeIndex);
+		cur_frames.add(removeIndex, page_index);
+		
 		return disk_write;
 	}
 }

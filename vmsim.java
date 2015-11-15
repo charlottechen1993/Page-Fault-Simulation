@@ -53,8 +53,13 @@ public class vmsim {
         		else
         			System.out.println("ERROR: mismatch time and page index in optimal");
     		}
+//    		System.out.println(time_tick);
     		total_mem_access++;
 	        time_tick++;
+	       
+//	        if(time_tick>50){
+//	        	System.exit(0);
+//	        }
 	        // === NO PAGE FAULT ===
 	        if(page_table.containsKey(page_index)){
 //	        	System.out.println(page_index + " is already in frame. [HIT]");
@@ -118,6 +123,11 @@ public class vmsim {
 	        refreshCnt++;
 	        // periodic refreshes
 	        if((algorithm.equals("nru") || algorithm.equals("work")) && refreshCnt==r){
+//	        	System.out.print("Before refresh:");
+//	        	for(int i=0; i<cur_frames.size(); i++){
+//	        		System.out.print(" " + page_table.get(cur_frames.get(i)).getRefBit());
+//	        	}
+//	        	System.out.println("");
 	        	for(pageEntries reset : page_table.values()){
 	        		reset.setRefBit(0);
 	        		if(algorithm.equals("work")){
@@ -125,6 +135,11 @@ public class vmsim {
 	        				reset.setTimeLastUsed(time_tick);;
 		        	}
 	        	}
+//	        	System.out.print("After refresh: ");
+//	        	for(int i=0; i<cur_frames.size(); i++){
+//	        		System.out.print(" " + page_table.get(cur_frames.get(i)).getRefBit());
+//	        	}
+//	        	System.out.println("\n");
 	        	refreshCnt=0;
 	        	time_refreshed++;
 	        }
