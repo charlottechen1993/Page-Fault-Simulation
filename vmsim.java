@@ -57,7 +57,7 @@ public class vmsim {
     		total_mem_access++;
 	        time_tick++;
 	       
-//	        if(time_tick>50){
+//	        if(time_tick>100){
 //	        	System.exit(0);
 //	        }
 	        // === NO PAGE FAULT ===
@@ -68,6 +68,7 @@ public class vmsim {
 	        	if(token[1].equals("W")){
 	        		page_table.get(page_index).setDirtyBit(1);
 	        	}
+	        	page_table.get(page_index).setTimeLastUsed(time_tick);
 	        } 
 	        // === PAGE FAULT ===
 	        else{    
@@ -101,6 +102,8 @@ public class vmsim {
 	        			Work replacement_w = new Work(hand);
 	        			disk_write = replacement_w.EvictPage(page_table, cur_frames, time_tick, page_index, tau);
 	        			hand = replacement_w.returnHand();
+	        			int disk_write_cnt = replacement_w.returnDiskWriteCount();
+	        			writes_to_disk = writes_to_disk + disk_write_cnt;
 	        		} else if(algorithm.equals("opt")){
 	        			Opt replacement_o = new Opt();
 	        			disk_write = replacement_o.EvictPage(page_table, cur_frames, optimal, time_tick, page_index);
@@ -129,17 +132,19 @@ public class vmsim {
 //	        	}
 //	        	System.out.println("");
 	        	for(pageEntries reset : page_table.values()){
-	        		reset.setRefBit(0);
 	        		if(algorithm.equals("work")){
 	        			if(reset.getRefBit()==1)
 	        				reset.setTimeLastUsed(time_tick);;
 		        	}
+	        		reset.setRefBit(0);
 	        	}
 //	        	System.out.print("After refresh: ");
 //	        	for(int i=0; i<cur_frames.size(); i++){
 //	        		System.out.print(" " + page_table.get(cur_frames.get(i)).getRefBit());
+//	        		System.out.print(" " + page_table.get(cur_frames.get(i)).getTimeLastUsed());
 //	        	}
 //	        	System.out.println("\n");
+	        	
 	        	refreshCnt=0;
 	        	time_refreshed++;
 	        }

@@ -8,8 +8,8 @@ public class Opt {
 	public Opt(){
 	}
 	public boolean EvictPage(HashMap<Integer, pageEntries>page_table, ArrayList<Integer>cur_frames, HashMap<Integer, LinkedList<Integer>>optimal, int time_tick, int page_index){
-		int longestDistance=0; //store farthest distance
-		int pageToEvict=0;	//store page that won't be used until farthest in future
+		int longestDistance=0; 	//store farthest distance
+		int pageToEvict=0;		//store page that won't be used until farthest in future
 		
 		//traverse through all valid pages
 		for(int i=0; i<cur_frames.size(); i++){
