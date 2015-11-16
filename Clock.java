@@ -29,7 +29,7 @@ public class Clock {
 					System.out.println("Page fault - evict dirty");
 				else
 					System.out.println("Page fault - evict clean");
-				System.out.println("Replace " + cur + " with " + page_index + "\n");
+				System.out.println("Replace page " + cur + " with page " + page_index + "\n");
 				
 				//remove victim page and replace with new page, break
 				page_table.remove(cur);

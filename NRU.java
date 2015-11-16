@@ -9,11 +9,13 @@ public class NRU {
 	}
 	
 	public boolean EvictPage(HashMap<Integer, pageEntries>page_table, ArrayList<Integer>cur_frames, int page_index){
+		//keep 4 arraylists of all pages in frame based on eviction priorities
 		ArrayList<Integer>priority1 = new ArrayList<Integer>();
 		ArrayList<Integer>priority2 = new ArrayList<Integer>();
 		ArrayList<Integer>priority3 = new ArrayList<Integer>();
 		ArrayList<Integer>priority4 = new ArrayList<Integer>();
 		
+		//go through all pages in frame and allocate them to appropriate eviction list
 		for(int pageIndex : cur_frames){
 			if(page_table.get(pageIndex).getRefBit()==0 && page_table.get(pageIndex).getDirtyBit()==0){
 				priority1.add(pageIndex);
@@ -27,8 +29,10 @@ public class NRU {
 				System.out.println("ERROR: priority list");
 			}
 		}
+		
 		Random rd = new Random ();
 		
+		//go through 4 groups of eviction group and randomly evict a page from lowest possible priority group
 		int pageIndex = 0;
 		if(!priority1.isEmpty()){
 			pageIndex = priority1.get(rd.nextInt(priority1.size()));
@@ -47,6 +51,13 @@ public class NRU {
 			System.out.println("ERROR: evict");
 		}
 		
+		if(disk_write==true)
+			System.out.println("Page fault - evict dirty");
+		else
+			System.out.println("Page fault - evict clean");
+		System.out.println("Replace page " + pageIndex + " with page " + page_index + "\n");
+		
+		//remove victim page and replace with new page
 		page_table.remove(pageIndex);
 		int removeIndex = cur_frames.indexOf(pageIndex);
 		cur_frames.remove(removeIndex);

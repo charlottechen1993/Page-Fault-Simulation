@@ -26,6 +26,12 @@ public class Opt {
 				else if (dirty == 0)
 					disk_write=false;
 				
+				if(disk_write==true)
+					System.out.println("Page fault - evict dirty");
+				else
+					System.out.println("Page fault - evict clean");
+				System.out.println("Replace page " + cur_page + " with page " + page_index + "\n");
+				
 				//remove victim page and replace with new page, return
 				page_table.remove(pageToEvict);
 				cur_frames.remove(i);
@@ -51,6 +57,12 @@ public class Opt {
 			disk_write=true;
 		else if (dirty == 0)
 			disk_write=false;
+		
+		if(disk_write==true)
+			System.out.println("Page fault - evict dirty");
+		else
+			System.out.println("Page fault - evict clean");
+		System.out.println("Replace page " + pageToEvict + " with page " + page_index + "\n");
 		
 		//remove victim page and replace with new page
 		page_table.remove(pageToEvict);

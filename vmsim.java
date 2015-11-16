@@ -29,6 +29,7 @@ public class vmsim {
 	public vmsim(String[]args) throws IOException{
 		parseCommandLineArgs(args);
 		
+		//if algorithm is opt, build a hashmap containing all pages and all times in which they'll appear
 		if(algorithm.equals("opt"))
 			buildOptimalMap();
 		
@@ -42,32 +43,34 @@ public class vmsim {
 			long page_index20 = 0;
 			int page_index = 0;
 			
+			//parse each line for page index and operation
 	        String[]token = line.split(" ");
 	        page_index20 = Long.parseLong(token[0], 16);
 	        page_index = (int)(page_index20/Math.pow(2, 12));
 	        
-//	        System.out.println(page_index + ": ");
+	        //if algorithm is opt, pop current time for current page out of the optimal table
     		if(algorithm.equals("opt")){
         		if(optimal.get(page_index).peek()==time_tick)
         			optimal.get(page_index).pop();
         		else
         			System.out.println("ERROR: mismatch time and page index in optimal");
     		}
-//    		System.out.println(time_tick);
+    		
+    		System.out.println("Time: " + time_tick);
+    		
+    		//increment time and amount of memories accessed
     		total_mem_access++;
 	        time_tick++;
 	       
-//	        if(time_tick>100){
-//	        	System.exit(0);
-//	        }
 	        // === NO PAGE FAULT ===
 	        if(page_table.containsKey(page_index)){
-//	        	System.out.println(page_index + " is already in frame. [HIT]");
-	        	// find entry value of the page and set reference bit to 1, and update dirty bit
+	        	System.out.println("No page fault. Page " + page_index + " is already in frame \n");
+	        	// find entry value of the page and set reference bit to 1, and update dirty bit if operation is W
 	        	page_table.get(page_index).setRefBit(1);
 	        	if(token[1].equals("W")){
 	        		page_table.get(page_index).setDirtyBit(1);
 	        	}
+	        	//set page's lastUsedTime to current time
 	        	page_table.get(page_index).setTimeLastUsed(time_tick);
 	        } 
 	        // === PAGE FAULT ===
@@ -75,22 +78,23 @@ public class vmsim {
 	        	page_faults++;
 	        	// === PAGE FAULT if page frames NOT full ===
 	        	if(page_table.size()<tableCapacity){
-	        		//System.out.println(token[0] + " page fault - no eviction");
+	        		System.out.println(token[0] + " Page fault - no eviction \n");
 	        		//add page to the arraylist containing all valid pages
 	        		//create a new page table value entry for the new page
 	        		//swap page into the page table
 	        		cur_frames.add(page_index);
 	        		pageEntries page_entry = new pageEntries(time_tick);
 	        		page_table.put(page_index, page_entry);
+	        		//set new page's dirty bit to 1 if operation is write
 	        		if(token[1].equals("W")){
 	        			page_table.get(page_index).setDirtyBit(1);
 	        		}
 	        	}
 	        	//=== PAGE FAULT if page frames is full ===
 	        	else if (page_table.size()==tableCapacity){
-	        		boolean disk_write = false;
+	        		boolean disk_write = false; 
 	        		
-	        		//EVICT
+	        		//=== EVICT ===
 	        		if(algorithm.equals("clock")){
 	        			Clock replacement_c = new Clock(hand);
 	        			disk_write = replacement_c.EvictPage(page_table, cur_frames, page_index);
@@ -102,6 +106,7 @@ public class vmsim {
 	        			Work replacement_w = new Work(hand);
 	        			disk_write = replacement_w.EvictPage(page_table, cur_frames, time_tick, page_index, tau);
 	        			hand = replacement_w.returnHand();
+	        			//record disk writes for pages that were written to disk but not evicted
 	        			int disk_write_cnt = replacement_w.returnDiskWriteCount();
 	        			writes_to_disk = writes_to_disk + disk_write_cnt;
 	        		} else if(algorithm.equals("opt")){
@@ -116,6 +121,8 @@ public class vmsim {
 	        		//swap page into the page table
 	        		pageEntries page_entry = new pageEntries(time_tick);
 	        		page_table.put(page_index, page_entry);
+	        		
+	        		//set new page's dirty bit to 1 if operation is write
 	        		if(token[1].equals("W")){
 	        			page_table.get(page_index).setDirtyBit(1);
 	        		}
@@ -124,33 +131,24 @@ public class vmsim {
 	        	}
 	        }
 	        refreshCnt++;
-	        // periodic refreshes
+	        // periodic refreshes based on specified r value
 	        if((algorithm.equals("nru") || algorithm.equals("work")) && refreshCnt==r){
-//	        	System.out.print("Before refresh:");
-//	        	for(int i=0; i<cur_frames.size(); i++){
-//	        		System.out.print(" " + page_table.get(cur_frames.get(i)).getRefBit());
-//	        	}
-//	        	System.out.println("");
 	        	for(pageEntries reset : page_table.values()){
+	        		//if algorithm is working set, set timeLastUsed to current time for all referenced pages
 	        		if(algorithm.equals("work")){
 	        			if(reset.getRefBit()==1)
 	        				reset.setTimeLastUsed(time_tick);;
 		        	}
+	        		//set all pages' reference bit to 0
 	        		reset.setRefBit(0);
 	        	}
-//	        	System.out.print("After refresh: ");
-//	        	for(int i=0; i<cur_frames.size(); i++){
-//	        		System.out.print(" " + page_table.get(cur_frames.get(i)).getRefBit());
-//	        		System.out.print(" " + page_table.get(cur_frames.get(i)).getTimeLastUsed());
-//	        	}
-//	        	System.out.println("\n");
-	        	
 	        	refreshCnt=0;
 	        	time_refreshed++;
 	        }
 	    }
 		printResult();
 	}
+	
 	public void buildOptimalMap() throws IOException{
 		File file = new File(input_file);
 		BufferedReader reader = new BufferedReader(new FileReader(file));
@@ -184,8 +182,6 @@ public class vmsim {
 		System.out.println("Total memory accesses: " + total_mem_access);
 		System.out.println("Total page faults: " + page_faults);
 		System.out.println("Total writes to disk: " + writes_to_disk + "\n");
-		
-		System.out.println("Total refreshes happened " + time_refreshed + "\n");
 	}
 	
 	public void parseCommandLineArgs(String[]args){
